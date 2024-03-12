@@ -20,4 +20,4 @@ requests==2.31.0
 pandas==2.2.1
 lxml==5.1.0
 finance-datareader==0.9.80
-mplfinance==0.12
+mplfinance==0.12.10b0
