@@ -15,28 +15,31 @@ import pandas as pd
 import FinanceDataReader as fdr
 from datetime import datetime, timedelta
 import matplotlib
-matplotlib.use('Agg')  # GUI가 필요없는 백엔드로 설정
-import matplotlib.pyplot as plt
-import tempfile
+matplotlib.use('Agg')  # Set backend to non-GUI
+import mplfinance as mpf
+from io import BytesIO
+
 
 @app.get("/finstate_summary")
 def finstate_summary(code: str):
     '''
-    요약 재무제표 데이터를 가져와 CSV 문자열을 반환합니다
-    :param code: 종목코드
+    Get summary financial statement data and return a CSV string.
+    
+    :param code: Stock code.
+    :return: CSV string of the summary financial statement data.
     '''
-    print(f'finstate_summary({code}) calling') # 호출 확인을 위한 print
+    print(f'finstate_summary({code}) calling') # Print for confirmation
 
-    # fin_type: 재무제표 종류 '0'=주재무제표, '1'=K-GAAP개별, '2'=K-GAAP연결, '3'=K-IFRS별도, '4'=K-IFRS연결
-    # freq: 기간: Y=년(기본), Q=분기, 'A'=연간분기 전체
+    # fin_type: Type of financial statement: '0' = Main financial statement, '1' = K-GAAP individual, '2' = K-GAAP consolidated, '3' = K-IFRS separate, '4' = K-IFRS consolidated
+    # freq: Period: Y = Year (default), Q = Quarter, 'A' = Annual and quarterly combined
     fin_type, freq ='0', 'Y'
 
-    # encparam 읽어오기
+    # Read encparam
     url = 'https://navercomp.wisereport.co.kr/v2/company/c1010001.aspx?cmp_cd=005930'
     html_text = requests.get(url).text
 
     if not re.search("encparam: '(.*?)'", html_text):
-        print('encparam not found') # encparam이 없는 경우
+        print('encparam not found') # Return None if encparam is not found
         return None
     encparam = re.findall ("encparam: '(.*?)'", html_text)[0]
 
@@ -50,32 +53,49 @@ def finstate_summary(code: str):
     df.columns = [pd.to_datetime(col, format='%Y%m', errors='coerce') for col in df.columns]
     df = df.transpose()
     df.index.name = '날짜'
-    return {df.to_csv()} ## CSV 문자열을 반환
+    return {df.to_csv()} ## Return CSV string
 
 
-# stock history data getting function
+# Stock history data getting function
 @app.get("/history")
-def get_stock_history(symbol, duration=30):
+def get_stock_history(symbol, duration=180):
+    '''
+    Get stock history data for a given symbol and duration.
+    
+    :param symbol: Stock symbol.
+    :param duration: Duration in days (default is 30 days).
+    :return: StreamingResponse object containing the plot image in PNG format.
+    '''
     end_date = datetime.now()
     start_date = end_date - timedelta(days=duration)
     df = fdr.DataReader(symbol, start_date, end_date)
     
-    # 차트 생성
-    plt.figure(figsize=(10, 5))
-    plt.plot(df.index, df['Close'], label='Close')
-    plt.title(f'{symbol} Close Price Chart')
+    buf = BytesIO()
     
-    plot_file = io.BytesIO()
-    plt.savefig(plot_file, format='png')
-    plt.close()
-    plot_file.seek(0)
+    mpf.plot(df, type='candle', style='yahoo', mav=(10, 20, 60),
+         title=(f'{symbol} Price Chart'),
+         ylabel='Price ($)',
+         figratio=(10,6),
+         volume=True, savefig=buf)
+    buf.seek(0)
     
-    return StreamingResponse(io.BytesIO(plot_file.read()), media_type="image/png")
+    return StreamingResponse(buf, media_type="image/png")
 
 @app.get("/")
 def read_root():
+    '''
+    Default route handler.
+    
+    :return: JSON response with "Hello" and "World" keys.
+    '''
     return {"Hello": "World"}
 
 @app.get("/test")
 def test(param: str):
+    '''
+    Test route handler.
+    
+    :param param: Test parameter.
+    :return: JSON response with the test parameter.
+    '''
     return {param}
