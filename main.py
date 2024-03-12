@@ -1,7 +1,3 @@
-from typing import Union
-import os
-import json
-from openai import OpenAI
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.responses import StreamingResponse
@@ -14,8 +10,6 @@ import io
 import pandas as pd
 import FinanceDataReader as fdr
 from datetime import datetime, timedelta
-import matplotlib
-matplotlib.use('Agg')  # Set backend to non-GUI
 import mplfinance as mpf
 from io import BytesIO
 
