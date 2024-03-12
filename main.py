@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
 from fastapi.responses import StreamingResponse
 
 app = FastAPI()
@@ -43,7 +42,7 @@ def finstate_summary(code: str):
     df = df_list[1]
     df.columns = [col[1] for col in df.columns]
     df.set_index('주요재무정보', inplace=True)
-    df.columns = [re.sub('[^\.\d]', '', col) for col in df.columns]
+    df.columns = [re.sub('[^\\.\\d]', '', col) for col in df.columns]
     df.columns = [pd.to_datetime(col, format='%Y%m', errors='coerce') for col in df.columns]
     df = df.transpose()
     df.index.name = '날짜'
