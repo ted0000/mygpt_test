@@ -23,4 +23,3 @@ finance-datareader==0.9.80
 mplfinance==0.12.10b0
 beautifulsoup4==4.12.3
 plotly==5.19.0
-```
