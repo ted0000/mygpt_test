@@ -1,4 +1,4 @@
-#GET http://127.0.0.1:8000/finstate_summary?code=017670
-GET http://127.0.0.1:8000/history?symbol=017670
+GET http://127.0.0.1:8000/finstate_summary?code=017670
+# GET http://127.0.0.1:8000/history?symbol=017670
 
 # GET http://127.0.0.1:8000/test?param='test'
